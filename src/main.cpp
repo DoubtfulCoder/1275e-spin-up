@@ -6,6 +6,7 @@
 // https://ez-robotics.github.io/EZ-Template/
 /////
 
+pros::Motor cata(1);
 
 // Chassis constructor
 Drive chassis (
@@ -136,7 +137,19 @@ void autonomous() {
   chassis.reset_drive_sensor(); // Reset drive sensors to 0
   chassis.set_drive_brake(MOTOR_BRAKE_HOLD); // Set motors to hold.  This helps autonomous consistency.
 
-  ez::as::auton_selector.call_selected_auton(); // Calls selected auton from autonomous selector.
+  // ez::as::auton_selector.call_selected_auton(); // Calls selected auton from autonomous selector.
+  set_tank(127, 127)
+  pros::delay(1000)
+  set_tank(0, 0)
+
+  chassis.set_drive_pid(24, 100, true);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(-12, 100);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(-12, 100);
+  chassis.wait_drive();
 }
 
 
@@ -160,8 +173,8 @@ void opcontrol() {
 
   while (true) {
 
-    chassis.tank(); // Tank control
-    // chassis.arcade_standard(ez::SPLIT); // Standard split arcade
+    // chassis.tank(); // Tank control
+    chassis.arcade_standard(ez::SPLIT); // Standard split arcade
     // chassis.arcade_standard(ez::SINGLE); // Standard single arcade
     // chassis.arcade_flipped(ez::SPLIT); // Flipped split arcade
     // chassis.arcade_flipped(ez::SINGLE); // Flipped single arcade
@@ -170,14 +183,12 @@ void opcontrol() {
     // Put more user control code here!
     // . . .
 
-    chassis.set_drive_pid(24, DRIVE_SPEED, true);
-    chassis.wait_drive();
+    printf("Right Velocity: %i \n", chassis.right_velocity());
 
-    chassis.set_drive_pid(-12, DRIVE_SPEED);
-    chassis.wait_drive();
-
-    chassis.set_drive_pid(-12, DRIVE_SPEED);
-    chassis.wait_drive();
+    // Cata
+    if (master.get_digital(DIGITAL_L1)) {
+      cata.set_target()
+    }
 
     pros::delay(ez::util::DELAY_TIME); // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
