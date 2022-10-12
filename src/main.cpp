@@ -16,7 +16,7 @@ Drive chassis (
 
   // Right Chassis Ports (negative port will reverse it!)
   //   the first port is the sensored port (when trackers are not used!)
-  ,{15, 17}
+  ,{17, 15}
 
   // IMU Port
   ,21
@@ -138,9 +138,9 @@ void autonomous() {
   chassis.set_drive_brake(MOTOR_BRAKE_HOLD); // Set motors to hold.  This helps autonomous consistency.
 
   // ez::as::auton_selector.call_selected_auton(); // Calls selected auton from autonomous selector.
-  set_tank(127, 127)
-  pros::delay(1000)
-  set_tank(0, 0)
+  // set_tank(127, 127)
+  // pros::delay(1000)
+  // set_tank(0, 0)
 
   chassis.set_drive_pid(24, 100, true);
   chassis.wait_drive();
@@ -187,8 +187,16 @@ void opcontrol() {
 
     // Cata
     if (master.get_digital(DIGITAL_L1)) {
-      cata.set_target()
+      printf("Clicked");
+      // cata.set_target()
     }
+
+    // Roller
+    // if (master.get_digital(DIGITAL_L2)) {
+    //   printf("Roller");
+      
+    // }
+
 
     pros::delay(ez::util::DELAY_TIME); // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
