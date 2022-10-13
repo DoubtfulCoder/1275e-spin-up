@@ -1,4 +1,5 @@
 #include "main.h"
+#define DIGITAL_SENSOR_PORT 'A'
 
 /////
 // For instalattion, upgrading, documentations and tutorials, check out website!
@@ -251,11 +252,18 @@ void opcontrol() {
 
     // pneumatic release
     if (master.get_digital(DIGITAL_L1)) {
-      pros::ADIDigitalOut piston('A');
+      pros::ADIDigitalOut piston(DIGITAL_SENSOR_PORT);
 
       piston.set_value(true);
       pros::delay(1000);
       piston.set_value(false);
+    }
+
+    // cata
+    if (master.get_digital(DIGITAL_R2)) {
+      cata.move_velocity(600);
+    } else {
+      cata.move_velocity(0);
     }
 
     // intake_control();
