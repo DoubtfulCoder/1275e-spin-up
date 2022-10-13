@@ -1,57 +1,99 @@
 #include "main.h"
 
-
 /////
 // For instalattion, upgrading, documentations and tutorials, check out website!
 // https://ez-robotics.github.io/EZ-Template/
 /////
 
-pros::Motor cata(1);
-
 // Chassis constructor
-Drive chassis (
-  // Left Chassis Ports (negative port will reverse it!)
-  //   the first port is the sensored port (when trackers are not used!)
-  {11, 12}
+Drive chassis(
+    // Left Chassis Ports (negative port will reverse it!)
+    //   the first port is the sensored port (when trackers are not used!)
+    {11, 12, 13}
 
-  // Right Chassis Ports (negative port will reverse it!)
-  //   the first port is the sensored port (when trackers are not used!)
-  ,{15, 17}
+    // Right Chassis Ports (negative port will reverse it!)
+    //   the first port is the sensored port (when trackers are not used!)
+    ,
+    {17, 15, 14}
 
-  // IMU Port
-  ,21
+    // IMU Port
+    ,
+    20
 
-  // Wheel Diameter (Remember, 4" wheels are actually 4.125!)
-  //    (or tracking wheel diameter)
-  ,3.25
+    // Wheel Diameter (Remember, 4" wheels are actually 4.125!)
+    //    (or tracking wheel diameter)
+    ,
+    3.25
 
-  // Cartridge RPM
-  //   (or tick per rotation if using tracking wheels)
-  ,600
+    // Cartridge RPM
+    //   (or tick per rotation if using tracking wheels)
+    ,
+    600
 
-  // External Gear Ratio (MUST BE DECIMAL)
-  //    (or gear ratio of tracking wheel)
-  // eg. if your drive is 84:36 where the 36t is powered, your RATIO would be 2.333.
-  // eg. if your drive is 36:60 where the 60t is powered, your RATIO would be 0.6.
-  ,0.6
+    // External Gear Ratio (MUST BE DECIMAL)
+    //    (or gear ratio of tracking wheel)
+    // eg. if your drive is 84:36 where the 36t is powered, your RATIO would
+    // be 2.333. eg. if your drive is 36:60 where the 60t is powered, your RATIO
+    // would be 0.6.
+    ,
+    0.6
 
-  // Uncomment if using tracking wheels
-  /*
-  // Left Tracking Wheel Ports (negative port will reverse it!)
-  // ,{1, 2} // 3 wire encoder
-  // ,8 // Rotation sensor
+    // Uncomment if using tracking wheels
+    /*
+    // Left Tracking Wheel Ports (negative port will reverse it!)
+    // ,{1, 2} // 3 wire encoder
+    // ,8 // Rotation sensor
 
-  // Right Tracking Wheel Ports (negative port will reverse it!)
-  // ,{-3, -4} // 3 wire encoder
-  // ,-9 // Rotation sensor
-  */
+    // Right Tracking Wheel Ports (negative port will reverse it!)
+    // ,{-3, -4} // 3 wire encoder
+    // ,-9 // Rotation sensor
+    */
 
-  // Uncomment if tracking wheels are plugged into a 3 wire expander
-  // 3 Wire Port Expander Smart Port
-  // ,1
+    // Uncomment if tracking wheels are plugged into a 3 wire expander
+    // 3 Wire Port Expander Smart Port
+    // ,1
 );
 
+pros::Motor cata(1);
+pros::Motor intake(20);
+// pros::Motor &intake_l = chassis.left_motors[1];
+// pros::Motor &intake_r = chassis.right_motors[1];
+// pros::ADIDigitalOut pto_intake_piston('A');
+// bool pto_intake_enabled = false;
 
+// void pto_intake(bool toggle) {
+//   pto_intake_enabled = toggle;
+//   chassis.pto_toggle({intake_l, intake_r}, toggle);
+//   pto_intake_piston.set_value(toggle);
+//   if (toggle) {
+//     intake_l.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+//     intake_r.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+//   }
+// }
+
+// void set_intake(int input) {
+//   if (!pto_intake_enabled)
+//     return;
+//   intake_l = input;
+//   intake_r = input;
+// }
+
+// int button_lock = 0;
+// void intake_control() {
+//   if (master.get_digital(DIGITAL_DOWN) && button_lock == 0) {
+//     pto_intake(!pto_intake_enabled);
+//     button_lock = 1;
+//   } else if (!master.get_digital(DIGITAL_DOWN)) {
+//     button_lock = 0;
+//   }
+
+//   if (master.get_digital(DIGITAL_R1))
+//     set_intake(127);
+//   else if (master.get_digital(DIGITAL_R2))
+//     set_intake(-127);
+//   else
+//     set_intake(0);
+// }
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -62,37 +104,48 @@ Drive chassis (
 void initialize() {
   // Print our branding over your terminal :D
   ez::print_ez_template();
-  
-  pros::delay(500); // Stop the user from doing anything while legacy ports configure.
+
+  pros::delay(
+      500); // Stop the user from doing anything while legacy ports configure.
 
   // Configure your chassis controls
-  chassis.toggle_modify_curve_with_controller(true); // Enables modifying the controller curve with buttons on the joysticks
+  chassis.toggle_modify_curve_with_controller(
+      true); // Enables modifying the controller curve with buttons on the
+             // joysticks
   chassis.set_active_brake(0); // Sets the active brake kP. We recommend 0.1.
-  chassis.set_curve_default(0, 0); // Defaults for curve. If using tank, only the first parameter is used. (Comment this line out if you have an SD card!)  
+  chassis.set_curve_default(
+      0, 0); // Defaults for curve. If using tank, only the first parameter is
+             // used. (Comment this line out if you have an SD card!)
   default_constants(); // Set the drive to your own constants from autons.cpp!
-  exit_condition_defaults(); // Set the exit conditions to your own constants from autons.cpp!
+  exit_condition_defaults(); // Set the exit conditions to your own constants
+                             // from autons.cpp!
 
-  // These are already defaulted to these buttons, but you can change the left/right curve buttons here!
-  // chassis.set_left_curve_buttons (pros::E_CONTROLLER_DIGITAL_LEFT, pros::E_CONTROLLER_DIGITAL_RIGHT); // If using tank, only the left side is used. 
-  // chassis.set_right_curve_buttons(pros::E_CONTROLLER_DIGITAL_Y,    pros::E_CONTROLLER_DIGITAL_A);
+  // These are already defaulted to these buttons, but you can change the
+  // left/right curve buttons here! chassis.set_left_curve_buttons
+  // (pros::E_CONTROLLER_DIGITAL_LEFT, pros::E_CONTROLLER_DIGITAL_RIGHT); // If
+  // using tank, only the left side is used.
+  // chassis.set_right_curve_buttons(pros::E_CONTROLLER_DIGITAL_Y,
+  // pros::E_CONTROLLER_DIGITAL_A);
 
   // Autonomous Selector using LLEMU
   ez::as::auton_selector.add_autons({
-    Auton("Example Drive\n\nDrive forward and come back.", drive_example),
-    Auton("Example Turn\n\nTurn 3 times.", turn_example),
-    Auton("Drive and Turn\n\nDrive forward, turn, come back. ", drive_and_turn),
-    Auton("Drive and Turn\n\nSlow down during drive.", wait_until_change_speed),
-    Auton("Swing Example\n\nSwing, drive, swing.", swing_example),
-    Auton("Combine all 3 movements", combining_movements),
-    Auton("Interference\n\nAfter driving forward, robot performs differently if interfered or not.", interfered_example),
+      Auton("Example Drive\n\nDrive forward and come back.", drive_example),
+      Auton("Example Turn\n\nTurn 3 times.", turn_example),
+      Auton("Drive and Turn\n\nDrive forward, turn, come back. ",
+            drive_and_turn),
+      Auton("Drive and Turn\n\nSlow down during drive.",
+            wait_until_change_speed),
+      Auton("Swing Example\n\nSwing, drive, swing.", swing_example),
+      Auton("Combine all 3 movements", combining_movements),
+      Auton("Interference\n\nAfter driving forward, robot performs differently "
+            "if interfered or not.",
+            interfered_example),
   });
 
   // Initialize chassis and auton selector
   chassis.initialize();
   ez::as::initialize();
 }
-
-
 
 /**
  * Runs while the robot is in the disabled state of Field Management System or
@@ -102,8 +155,6 @@ void initialize() {
 void disabled() {
   // . . .
 }
-
-
 
 /**
  * Runs after initialize(), and before autonomous when connected to the Field
@@ -118,8 +169,6 @@ void competition_initialize() {
   // . . .
 }
 
-
-
 /**
  * Runs the user autonomous code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -132,15 +181,14 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
-  chassis.reset_pid_targets(); // Resets PID targets to 0
-  chassis.reset_gyro(); // Reset gyro position to 0
-  chassis.reset_drive_sensor(); // Reset drive sensors to 0
-  chassis.set_drive_brake(MOTOR_BRAKE_HOLD); // Set motors to hold.  This helps autonomous consistency.
+  chassis.reset_pid_targets();               // Resets PID targets to 0
+  chassis.reset_gyro();                      // Reset gyro position to 0
+  chassis.reset_drive_sensor();              // Reset drive sensors to 0
+  chassis.set_drive_brake(MOTOR_BRAKE_HOLD); // Set motors to hold.  This helps
+                                             // autonomous consistency.
 
-  // ez::as::auton_selector.call_selected_auton(); // Calls selected auton from autonomous selector.
-  set_tank(127, 127)
-  pros::delay(1000)
-  set_tank(0, 0)
+  // ez::as::auton_selector.call_selected_auton(); // Calls selected auton from
+  // autonomous selector. set_tank(127, 127); pros::delay(1000); set_tank(0, 0);
 
   chassis.set_drive_pid(24, 100, true);
   chassis.wait_drive();
@@ -151,8 +199,6 @@ void autonomous() {
   chassis.set_drive_pid(-12, 100);
   chassis.wait_drive();
 }
-
-
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -175,6 +221,14 @@ void opcontrol() {
 
     // chassis.tank(); // Tank control
     chassis.arcade_standard(ez::SPLIT); // Standard split arcade
+
+    if (master.get_digital(DIGITAL_L1)) {
+      // 1/3 speed
+      chassis.joy_thresh_opcontrol(0.3 * master.get_analog(ANALOG_LEFT_Y),
+                                   0.3 * master.get_analog(ANALOG_RIGHT_Y));
+
+      chassis.modify_curve_with_controller();
+    }
     // chassis.arcade_standard(ez::SINGLE); // Standard single arcade
     // chassis.arcade_flipped(ez::SPLIT); // Flipped split arcade
     // chassis.arcade_flipped(ez::SINGLE); // Flipped single arcade
@@ -185,11 +239,28 @@ void opcontrol() {
 
     printf("Right Velocity: %i \n", chassis.right_velocity());
 
-    // Cata
-    if (master.get_digital(DIGITAL_L1)) {
-      cata.set_target()
+    if (master.get_digital(DIGITAL_R1)) {
+      // intake
+      intake.move_velocity(-100);
+    } else if (master.get_digital(DIGITAL_A)) {
+      // outtake/roller
+      intake.move_velocity(100);
+    } else {
+      intake.move_velocity(0);
     }
 
-    pros::delay(ez::util::DELAY_TIME); // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
+    // pneumatic release
+    if (master.get_digital(DIGITAL_L1)) {
+      pros::ADIDigitalOut piston('A');
+
+      piston.set_value(true);
+      pros::delay(1000);
+      piston.set_value(false);
+    }
+
+    // intake_control();
+
+    pros::delay(ez::util::DELAY_TIME); // This is used for timer calculations!
+                                       // Keep this ez::util::DELAY_TIME
   }
 }
