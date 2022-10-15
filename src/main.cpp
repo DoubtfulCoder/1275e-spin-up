@@ -1,4 +1,8 @@
 #include "main.h"
+#include "pros/misc.h"
+#include <cstdio>
+// #include "api.h"
+// #include "okapi/api.hpp"
 #define DIGITAL_SENSOR_PORT 'A'
 
 /////
@@ -10,12 +14,12 @@
 Drive chassis(
     // Left Chassis Ports (negative port will reverse it!)
     //   the first port is the sensored port (when trackers are not used!)
-    {11, 12, 13}
+    {11, -13}
 
     // Right Chassis Ports (negative port will reverse it!)
     //   the first port is the sensored port (when trackers are not used!)
     ,
-    {17, 15, 14}
+    {-17, 14}
 
     // IMU Port
     ,
@@ -55,7 +59,12 @@ Drive chassis(
     // ,1
 );
 
-pros::Motor cata(1);
+// const int Cata_MOTOR_PORT = 1;
+// pros::Motor cata(Cata_MOTOR_PORT);
+
+// ControllerButton btnUp(ControllerDigital::R1);
+// ControllerButton btnDown(ControllerDigital::R2);
+pros::Motor cata(5);
 pros::Motor intake(20);
 // pros::Motor &intake_l = chassis.left_motors[1];
 // pros::Motor &intake_r = chassis.right_motors[1];
@@ -191,14 +200,18 @@ void autonomous() {
   // ez::as::auton_selector.call_selected_auton(); // Calls selected auton from
   // autonomous selector. set_tank(127, 127); pros::delay(1000); set_tank(0, 0);
 
-  chassis.set_drive_pid(24, 100, true);
-  chassis.wait_drive();
+  chassis.set_tank(127, 127);
+  pros::delay(1000); // Wait 1 second
+  chassis.set_tank(0, 0);
 
-  chassis.set_drive_pid(-12, 100);
-  chassis.wait_drive();
+  // chassis.set_drive_pid(24, 100, true);
+  // chassis.wait_drive();
 
-  chassis.set_drive_pid(-12, 100);
-  chassis.wait_drive();
+  // chassis.set_drive_pid(-12, 100);
+  // chassis.wait_drive();
+
+  // chassis.set_drive_pid(-12, 100);
+  // chassis.wait_drive();
 }
 
 /**
@@ -218,17 +231,36 @@ void opcontrol() {
   // This is preference to what you like to drive on.
   chassis.set_drive_brake(MOTOR_BRAKE_COAST);
 
+  bool intakeOn = false;
+  bool rollerOn = false;
+  bool shooting = false;
+
+  int right_y = master.get_analog(ANALOG_RIGHT_Y);
+
   while (true) {
 
     // chassis.tank(); // Tank control
-    chassis.arcade_standard(ez::SPLIT); // Standard split arcade
+    // chassis.arcade_standard(ez::SPLIT); // Standard split arcade
+
+    // int l_stick =
+    // chassis.left_curve_function(master.get_analog(ANALOG_LEFT_Y)); int
+    // r_stick =
+    //     chassis.left_curve_function(master.get_analog(ANALOG_RIGHT_Y));
+
+    // chassis.set_tank(l_stick, r_stick);
+
+    chassis.arcade_standard(ez::SINGLE);
+    chassis.toggle_modify_curve_with_controller(true);
 
     if (master.get_digital(DIGITAL_L1)) {
+      chassis.set_tank(0.1 * master.get_analog(ANALOG_LEFT_X),
+                       0.1 * master.get_analog(ANALOG_LEFT_Y));
       // 1/3 speed
-      chassis.joy_thresh_opcontrol(0.3 * master.get_analog(ANALOG_LEFT_Y),
-                                   0.3 * master.get_analog(ANALOG_RIGHT_Y));
+      // chassis.joy_thresh_opcontrol(
+      //     (int)(0.2 * master.get_analog(ANALOG_LEFT_Y)),
+      //     (int)(0.2 * master.get_analog(ANALOG_RIGHT_Y)));
 
-      chassis.modify_curve_with_controller();
+      // chassis.modify_curve_with_controller();
     }
     // chassis.arcade_standard(ez::SINGLE); // Standard single arcade
     // chassis.arcade_flipped(ez::SPLIT); // Flipped split arcade
@@ -238,20 +270,64 @@ void opcontrol() {
     // Put more user control code here!
     // . . .
 
-    printf("Right Velocity: %i \n", chassis.right_velocity());
+    // printf("Right Velocity: %i \n", chassis.right_velocity());
+
+    if (master.get_digital(DIGITAL_R2)) {
+      // cata.move_voltage(-3000);
+      cata.move_relative(-1080 * 8.33, 100);
+      // cata.move_relative(-680 * 8.33, 100);
+      // cata.move_absolute(0, 100);
+    }
+
+    // move to 0
+    if (master.get_digital(DIGITAL_B)) {
+      cata.move_absolute(0, 100);
+    }
+
+    // set cata intake point
+    if (master.get_digital(DIGITAL_Y)) {
+      cata.set_zero_position(cata.get_position());
+    }
+
+    // move cata up/down override
+    int new_right_y = master.get_analog(ANALOG_RIGHT_Y);
+    if (new_right_y != right_y) {
+      right_y = new_right_y;
+      cata.move_voltage(right_y * 30);
+    }
+
+    // if (master.get_digital(DIGITAL_R2)) {
+    //   // cata.move_relative(800, 100);
+    //   cata.move_velocity(100);
+    //   // cata.move_absolute(360, 100);
+    // }
 
     if (master.get_digital(DIGITAL_R1)) {
       // intake
-      intake.move_velocity(-100);
+      intakeOn = !intakeOn;
+      rollerOn = false;
+      intake.move_velocity(100);
+      // pros::delay(10);
     } else if (master.get_digital(DIGITAL_A)) {
       // outtake/roller
-      intake.move_velocity(100);
+      intakeOn = false;
+      rollerOn = !rollerOn;
+      intake.move_velocity(-100);
+      // pros::delay(10);
     } else {
       intake.move_velocity(0);
     }
 
+    // if (intakeOn) {
+    //   intake.move_velocity(100);
+    // } else if (rollerOn) {
+    //   intake.move_velocity(-100);
+    // } else {
+    //   intake.move_velocity(0);
+    // }
+
     // pneumatic release
-    if (master.get_digital(DIGITAL_L1)) {
+    if (master.get_digital(DIGITAL_DOWN)) {
       pros::ADIDigitalOut piston(DIGITAL_SENSOR_PORT);
 
       piston.set_value(true);
@@ -260,15 +336,16 @@ void opcontrol() {
     }
 
     // cata
-    if (master.get_digital(DIGITAL_R2)) {
-      cata.move_velocity(600);
-    } else {
-      cata.move_velocity(0);
-    }
+    // if (master.get_digital(DIGITAL_R2)) {
+    //   cata.move_velocity(600);
+    // } else {
+    //   cata.move_velocity(0);
+    // }
 
     // intake_control();
 
-    pros::delay(ez::util::DELAY_TIME); // This is used for timer calculations!
-                                       // Keep this ez::util::DELAY_TIME
+    pros::delay(10);
+    // pros::delay(ez::util::DELAY_TIME); // This is used for timer
+    // calculations! Keep this ez::util::DELAY_TIME
   }
 }
